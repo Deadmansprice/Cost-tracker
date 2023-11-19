@@ -1,0 +1,19 @@
+This is a cost tracker with the following features (Pre-release version):
+ - Excel-like table to add the costs 
+ - Calculates the daily, monthly and yearly costs
+ - Multi-user option (Local only, and thus cannot be used concurrently with other users).
+ - Password (If you do not want anyone accessing your costs)
+ - CSV file/s that will be updated when you add/edit your costs
+
+Initial pre-release - Version 0.07:
+ - Initial file creation. I'm still learning Python programming and should have uploaded to Github earlier for version control but this should suffice.
+ - Note, this is still not yet complete hence pre-release. I'll complete it I have all the planned features sorted out.
+
+Pending features to add prior to release:
+ - Adding load previous month button
+ - Add in SUM automatic calculation feature on the bottom or on the side to calculate daily, weekly, monthly and yearly costs
+ - Add in a button to add the target cost to allow the user for tracking purposes
+
+Current issues:
+ - JSON and CSV are saving and are being loaded outside of the folder
+ - 1 CSV saving inside the folder and are not being used
