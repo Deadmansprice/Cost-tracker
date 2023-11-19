@@ -90,6 +90,8 @@ class UserManagement:
     def check_failed_login(cls, username):
         return cls.failed_login_attempts.get(username, 0)
     
+
+    #For Folder saving. See Common.py for more details. 
     @classmethod
     def save_folder_path(cls, folder_path):
         with open(cls.Common.FOLDER_PATH_FILENAME, "w") as f:
