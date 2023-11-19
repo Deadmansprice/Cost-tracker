@@ -1,0 +1,6 @@
+This is a cost tracker with the following features:
+ - Excel-like table to add the costs
+ - Calculates the daily, monthly and yearly costs
+ - Multi-user option (Local only, and thus cannot be used concurrently with other users).
+ - Password (If you do not want anyone accessing your costs)
+ - CSV file/s that will be updated when you add/edit your costs
