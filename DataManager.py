@@ -2,7 +2,7 @@
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-from Common import CSV_FILENAME, get_file_paths
+import Common
 import CostCell
 import UserManagement
 
@@ -13,7 +13,7 @@ class DataManager:
     def create_monthly_csv(self, default_directory):
         today = datetime.now()
         month_suffix = today.strftime('%Y_%m')
-        _, csv_file_path = get_file_paths(default_directory, self.username)
+        _, csv_file_path = Common.get_file_paths(default_directory, self.username)
         return csv_file_path
 
     def get_current_month_csv(self):
@@ -26,7 +26,7 @@ class DataManager:
             today = datetime.now().strftime("%d %B %Y")
             columns = [today]
             cf = pd.DataFrame(columns=columns)
-            cf.to_csv(CSV_FILENAME, index=False)
+            cf.to_csv(Common.CSV_FILENAME, index=False)
         except Exception as e:
             print(f"An error occured while creating the CSV file: {e}")
 

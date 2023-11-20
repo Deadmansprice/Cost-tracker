@@ -3,11 +3,14 @@ import CostCell
 import UserManagement
 import DataManager
 from pathlib import Path
+import os
 
+home_directory = os.path.expanduser('~') #Grabs user's own home directory
+default_directory = os.path.join(home_directory, "Cost Tracker", "Cost Tracking Data")
 #Variables to be used by all the files to keep it dynamic. Necessary when wrking with multiple files.
-JSON_FILENAME = "login_data.json"
+JSON_FILENAME = os.path.join(default_directory,"login_data.json")
 FOLDER_PATH_FILENAME = "folder_path.json"
-CSV_FILENAME = "cost_tracking_app.csv"
+CSV_FILENAME = os.path.join(default_directory,"cost_tracking_app.csv")
 
 #Creation of user data upon first launch
 def create_user_data(username, password, default_directory):

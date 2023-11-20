@@ -2,8 +2,6 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import Common
-import os
-import csv
 from PySide6.QtWidgets import QInputDialog
 import CostCell
 
@@ -94,13 +92,13 @@ class UserManagement:
     #For Folder saving. See Common.py for more details. 
     @classmethod
     def save_folder_path(cls, folder_path):
-        with open(cls.Common.FOLDER_PATH_FILENAME, "w") as f:
+        with open(Common.FOLDER_PATH_FILENAME, "w") as f:
             json.dump({"folder_path": folder_path}, f)
 
     @classmethod
     def load_folder_path(cls):
         if Path(cls.Common.FOLDER_PATH_FILENAME).exists():
-            with open(cls.Common.FOLDER_PATH_FILENAME, "r") as f:
+            with open(Common.FOLDER_PATH_FILENAME, "r") as f:
                 data = json.load(f)
             return data.get("folder_path", "")
         return ""

@@ -14,14 +14,10 @@ class CostCellUI(QWidget):
         self.username = username
         self.data_2d_list = []
 
-        #Directory as set by the main.py
-        home_directory = os.path.expanduser('~')
-        default_directory = os.path.join(home_directory, "Cost Tracker")
+        if not os.path.exists(Common.default_directory):
+            os.makedirs(Common.default_directory)
 
-        if not os.path.exists(default_directory):
-            os.makedirs(default_directory)
-
-        _, csv_file_path = Common.get_file_paths(default_directory, self.data_2d_list)
+        _, csv_file_path = Common.get_file_paths(Common.default_directory, self.username)
 
 
         self.csv_manager = CSVManagement(self.username, self.data_2d_list)
@@ -53,9 +49,17 @@ class CostCellUI(QWidget):
                 self.add_new_day_column()
 
     def load_csv_data(self, csv_file_path):
-        cost_frame = pd.read_csv(csv_file_path)
-        self.data_2d_list = cost_frame.values.tolist()
-        self.update_table_ui()
+        #verifies existence of CSV file
+        if not os.path.exists(csv_file_path):
+            # Handle the absence of the file, for example, by creating an empty DataFrame
+            empty_df = pd.DataFrame()
+            # Optionally save the empty DataFrame to create the file
+            empty_df.to_csv(csv_file_path, index=False)
+            return empty_df
+        else:
+            #If the file exists, proceed to load it as before.
+            cost_frame = pd.read_csv(csv_file_path)
+            return cost_frame
 
     def setup_user_label(self):
         if self.username is None:

@@ -18,8 +18,8 @@ class CSVManagement:
         current_date = datetime.now()
         return f"cost_tracking_app_{self.username}_{current_date.year}_{current_date.month}.csv"
 
-    def save_to_csv(self):
-        folder_path = os.path.join(os.getcwd(), "Cost Tracking Data")
+    def save_to_csv(self, save_directory=None):
+        folder_path = save_directory if save_directory else Common.default_directory
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         file_path = os.path.join(folder_path, self.file_name)
@@ -47,13 +47,13 @@ class CSVManagement:
 
     def previous_months_check(self):
         csv_files = []
-        for file in os.listdir(Common.FOLDER_PATH_FILENAME):
+        for file in os.listdir(Common.default_directory):
             if file.endswith(".csv") and file.startswith(self.username):
                 csv_files.append(file)
             return csv_files
         
     def csv_data_load(self, filename):
-        full_path = os.path.join(Common.FOLDER_PATH_FILENAME, filename)
+        full_path = os.path.join(Common.default_directory, filename)
         with open(full_path, 'r') as file:
             reader = csv.reader(file)
             self.data_2d_list = list(reader)
