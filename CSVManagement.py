@@ -4,6 +4,7 @@ import csv
 import os
 import pandas as pd
 import Common
+import CostCell
 
 class CSVManagement:
     def __init__(self, username, data_2d_list):
@@ -23,8 +24,14 @@ class CSVManagement:
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         file_path = os.path.join(folder_path, self.file_name)
-        try:
+
+        if not os.path.exists(file_path):
             with open(file_path, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(['Date'] + CostCell.CostCellUI.headerlabels)
+
+        try:
+            with open(file_path, 'a', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerows(self.data_2d_list)
             print("Data saved automatically.", file_path)

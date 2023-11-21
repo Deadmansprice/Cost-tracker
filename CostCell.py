@@ -6,6 +6,7 @@ import calendar
 import pandas as pd
 import platform
 import os, Common
+import csv
 
 # For the UI of CostCell. Handles the appearance and buttonns.
 class CostCellUI(QWidget):
@@ -17,11 +18,11 @@ class CostCellUI(QWidget):
         if not os.path.exists(Common.default_directory):
             os.makedirs(Common.default_directory)
 
-        _, csv_file_path = Common.get_file_paths(Common.default_directory, self.username)
+        _, self.csv_file_path = Common.get_file_paths(Common.default_directory, self.username)
 
 
         self.csv_manager = CSVManagement(self.username, self.data_2d_list)
-        self.data_2d_list = self.load_csv_data(csv_file_path)
+        self.data_2d_list = self.load_csv_data(self.csv_file_path)
         self.layout = QVBoxLayout(self)
         self.headerlabels = ['Food', 'Fuel', 'Bills', 'Investments', 'Miscellaneous']
         _, num_days = calendar.monthrange(datetime.now().year, datetime.now().month)
@@ -41,6 +42,17 @@ class CostCellUI(QWidget):
         self.csv_manager.new_month_check()
         current_date = datetime.now()
         formatted_date = current_date.strftime("%-d %B %Y") if platform.system() != 'Windows' else current_date.strftime("%#d %B %Y")
+
+        with open(self.csv_file_path,'r', newline='') as file:
+            reader = csv.reader(file)
+            data = list(reader)
+
+        if formatted_date not in data[0]:
+            data[0].append(formatted_date)
+
+            with open (self.csv_file_path, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(data)
         
         #Ensure table widget has been initialised before trying to access its headers
         if hasattr(self, 'table'):
