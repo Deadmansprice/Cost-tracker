@@ -13,6 +13,9 @@ Version 0.08
  - Refactored several lines. Further clean up and moving functions. Removed redundant functions. Done my consistency check and ensured all CSV/JSON/FILENAME are directed towards to Common.py.
  - Modified several existing functions.
 
+Version 0.09:
+ - Updated CostCell & CSVManagement.py to fix the errors around loading CSV, to allow CSV to be read, and to allow data to write to CSV
+
 Pending features to add prior to release:
  - Adding load previous month button
  - Add in SUM automatic calculation feature on the bottom or on the side to calculate daily, weekly, monthly and yearly costs
@@ -20,8 +23,11 @@ Pending features to add prior to release:
 
 Current issues:
  - Files not saving where the user desires them to.
- - Not loading properly.
+ - 2 different empty folders being created when it should be 1 folder where user desires to save the files to
+ - 3 different csvs being created. It should be for 1 CSV. 
+ - I've got the CSV to write the days on the row, but the first column does not have the header labels written.
 
 ** Solved Issues
  - 1 CSV saving inside the folder and are not being used 
- - JSON and CSV are saving and are being loaded outside of the folder
+ - JSON and CSV are saving and are being loaded outside of the main python folder
+ - Not loading properly.
