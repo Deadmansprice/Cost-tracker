@@ -1,11 +1,12 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QMessageBox, QFileDialog #inital set up of the application
+##### - main.py: 
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QMessageBox, QFileDialog, QInputDialog, QLineEdit
 from pathlib import Path
-import DataManager
 import Common
 import pandas as pd
-import time, sys, os
+import sys, os
 import UserManagement
 import CSVManagement
+import CostCell
 
 #Main window at the start for local user login
 class MainWindow(QMainWindow): 
@@ -13,7 +14,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.new_window = None
         self.setWindowTitle("Cost Tracker")
-        self.user_management = DataManager.Returner.create_user_management() #Refer to DataManger.py. It leads to #UserManagement for account creation on start.
+        self.user_management = UserManagement.UserManagement() #Refer to DataManger.py. It leads to #UserManagement for account creation on start.
         self.UserData = UserManagement.UserManagement() #Boots up UserManagement Class for logins.
         self.username = None
         self.data_2d_list = []
@@ -45,9 +46,17 @@ class MainWindow(QMainWindow):
         choice = QMessageBox.question(self, 'Setup Requred', "CSV or JSON file not found. Would you like to set a file path for saving data?", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
         if choice == QMessageBox.Yes:
-            self.saveFileDialogue()
+            self.choose_new_directory()
         else:
             self.UserData.create_user_and_data(Common.default_directory, self)
+
+    def choose_new_directory(self):
+        options = QFileDialog.Options()
+        new_directory = QFileDialog.getExistingDirectory(self, "Select Directory", Common.default_directory, options=options)
+        if new_directory:
+            Common.update_default_directory(new_directory)
+        else:
+            print("Directory selection was canceled.")
 
     #Giving user to set file path on where they are saving the folder where their data should be saved in.
     def set_file_path(self):
@@ -64,7 +73,7 @@ class MainWindow(QMainWindow):
             self.user_list_window = Common.user_list_window()
             self.user_list_window.show()
         else:
-            self.UserData.create_user_and_data(Common.default_directory, self)
+            self.UserData.create_user_via_dialogue(self)
 
     def openNewWindow(self):
         self.close()
@@ -73,28 +82,38 @@ class MainWindow(QMainWindow):
 
     def reload_data(self):
         #Reloads relevant data from CSV file
-        self.df = pd.read_csv(Common.CSV_FILENAME)
+        self.csv_manager = CSVManagement.CSVManagement(self.username, self.data_2d_list)
+        self.data_2d_list = self.csv_manager.csv_data_load(Common.CSV_FILENAME)
 
-        if hasattr(self, 'new_window'):
-            self.new_window.update_table(self.df)       
+    def openCostCell(self):
+        self.cost_cell_instance = CostCell.CostCell(self.username)
+        self.cost_cell_instance.show()
 
     def setUserDetails(self, username, data_2d_list):
         self.username = username
-        self.data_2d_list = data_2d_list       
+        self.data_2d_list = data_2d_list
+
+        if hasattr(self, 'cost_cell_instance'):
+            self.cost_cell_instance.update_table(self.data_2d_list)
 
     #Allows the user to choose location on where to save the data.    
     def saveFileDialogue(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
+        options |= QFileDialog.ShowDirsOnly
 
-        dialog = QFileDialog(self, "Save File As", "", "CSV Files (*.csv); All Files (*)")
+        dialog = QFileDialog(self, "Select Folder", "")
+        dialog.setFileMode(QFileDialog.Directory)
         dialog.setOptions(options)
 
         if dialog.exec() == QFileDialog.Accepted:
             selected_directory = os.path.dirname(dialog.selectedFiles()[0])
+            Common.default_directory = selected_directory
+            print("New directory set:", Common.default_directory)
+            print("Directory selected:", Common.default_directory)
             if self.username is not None and self.data_2d_list is not None:
                 csv_manager = CSVManagement.CSVManagement(self.username, self.data_2d_list)
-                csv_manager.save_to_csv(save_directory=selected_directory)    
+                csv_manager.save_to_csv(save_directory=selected_directory, headerlabels=self.headerlabels)    
             else:
                 # Handle the case where username or data_2d_list is not set
                 QMessageBox.warning(self, "Error", "User details are not set.")

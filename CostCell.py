@@ -1,12 +1,11 @@
+##### - CostCell.py:
 from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QLabel
 from PySide6.QtCore import Qt, QTimer #For the app settings
 from datetime import datetime
-from CSVManagement import CSVManagement
+import CSVManagement
 import calendar
 import pandas as pd
-import platform
 import os, Common
-import csv
 
 # For the UI of CostCell. Handles the appearance and buttonns.
 class CostCellUI(QWidget):
@@ -19,12 +18,12 @@ class CostCellUI(QWidget):
             os.makedirs(Common.default_directory)
 
         _, self.csv_file_path = Common.get_file_paths(Common.default_directory, self.username)
+        print("CSV file path in CostCellUI:", self.csv_file_path)
 
 
-        self.csv_manager = CSVManagement(self.username, self.data_2d_list)
+        self.csv_manager = CSVManagement.CSVManagement(self.username, self.data_2d_list, Common.headerlabels)
         self.data_2d_list = self.load_csv_data(self.csv_file_path)
         self.layout = QVBoxLayout(self)
-        self.headerlabels = ['Food', 'Fuel', 'Bills', 'Investments', 'Miscellaneous']
         _, num_days = calendar.monthrange(datetime.now().year, datetime.now().month)
 
         
@@ -32,46 +31,21 @@ class CostCellUI(QWidget):
         self.setup_table()
         self.setup_buttons()
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_headers)
+        self.timer.timeout.connect(self.csv_manager.update_headers)
         self.timer.start(30000) #Save every 30 seconds
-        self.update_headers()
+        self.csv_manager.update_headers()
         self.setLayout(self.layout)
 
-    #Header update. checks the local system for date/time and sees if it's current month, if the month has passed then it will create a new file for that newly-current month.
-    def update_headers(self):
-        self.csv_manager.new_month_check()
-        current_date = datetime.now()
-        formatted_date = current_date.strftime("%-d %B %Y") if platform.system() != 'Windows' else current_date.strftime("%#d %B %Y")
-
-        with open(self.csv_file_path,'r', newline='') as file:
-            reader = csv.reader(file)
-            data = list(reader)
-
-        if formatted_date not in data[0]:
-            data[0].append(formatted_date)
-
-            with open (self.csv_file_path, 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerows(data)
-        
-        #Ensure table widget has been initialised before trying to access its headers
-        if hasattr(self, 'table'):
-            current_headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
-            if formatted_date not in current_headers:
-                self.add_new_day_column()
+    def populate_table_with_csv_data(self):
+        if self.data_2d_list is not None:
+            for row_index, row_data in enumerate(self.data_2d_list):
+                for col_index, cell_data in enumerate(row_data):
+                    cell_item = QTableWidgetItem(str(cell_data))
+                    self.table.setItem(row_index, col_index, cell_item)
 
     def load_csv_data(self, csv_file_path):
-        #verifies existence of CSV file
-        if not os.path.exists(csv_file_path):
-            # Handle the absence of the file, for example, by creating an empty DataFrame
-            empty_df = pd.DataFrame()
-            # Optionally save the empty DataFrame to create the file
-            empty_df.to_csv(csv_file_path, index=False)
-            return empty_df
-        else:
-            #If the file exists, proceed to load it as before.
-            cost_frame = pd.read_csv(csv_file_path)
-            return cost_frame
+        self.csv_manager = CSVManagement.CSVManagement(self.username, self.data_2d_list, Common.headerlabels)
+        return self.csv_manager.csv_data_load(csv_file_path)
 
     def setup_user_label(self):
         if self.username is None:
@@ -86,11 +60,11 @@ class CostCellUI(QWidget):
     def setup_table(self):
         self.table = QTableWidget()
         #dynamic rows and columns below
-        self.table.setRowCount(len(self.headerlabels))
+        self.table.setRowCount(len(Common.headerlabels))
         self.table.setColumnCount(1) #initially only 1 column for today
         today = datetime.now().strftime(("%d %B %Y"))
         self.table.setHorizontalHeaderLabels([today])
-        for row in range(len(self.headerlabels)):
+        for row in range(len(Common.headerlabels)):
             for col in range(self.table.columnCount()):
                 self.table.setItem(row, col, QTableWidgetItem(""))
         self.populate_table_with_csv_data()
@@ -114,7 +88,7 @@ class CostCellUI(QWidget):
         self.table.setHorizontalHeaderItem(new_column_index, QTableWidgetItem(today))
         for row in range(self.table.rowCount()):
             self.table.setItem(row, new_column_index, QTableWidgetItem(""))
-        self.csv_manager.save_to_csv()
+        self.csv_manager.save_to_csv(Common.headerlabels)
 
 ## Back end event handling depending on what the user is selecting within the UI
 class CostCellEventHandler:
@@ -157,7 +131,7 @@ class CostCellEventHandler:
         
         new_value = self.ui.table.item(row,column).text()
         self.ui.data_2d_list[row][column] = new_value
-        self.ui.csv_manager.save_to_csv()
+        self.ui.csv_manager.save_to_csv(headerlabels=Common.headerlabels)
 
     def header_clicked(self, index):
         self.selected_row_index = index
@@ -169,7 +143,7 @@ class CostCellEventHandler:
             print("item flags", item.flags())
 
     def auto_save_method(self):
-        self.ui.csv_manager.save_to_csv()
+        self.ui.csv_manager.save_to_csv(headerlabels=Common.headerlabels)
 
 
 #Main window suppored by UI settings and Event handler. It's just for the tables within.
@@ -178,7 +152,7 @@ class CostCell(QMainWindow):
         super().__init__()
         self.setWindowTitle("Cost Cell")
         self.username = username
-        self.ui = CostCellUI(self.username) #Refer to above class with same name.
+        self.ui = CostCellUI(username) #Refer to above class with same name.
         self.event_handler = CostCellEventHandler(self.ui) #refer to above class with same name. Note, we are using .ui for the below tables.
         self.setCentralWidget(self.ui)
 
@@ -193,7 +167,7 @@ class CostCell(QMainWindow):
                 print("Item flags:", item.flags())
                 self.ui.table.setItem(row, col, item)
 
-        self.ui.table.setVerticalHeaderLabels(self.ui.headerlabels)
+        self.ui.table.setVerticalHeaderLabels(Common.headerlabels)
         self.ui.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         self.ui.table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
 
@@ -272,5 +246,5 @@ class CostCell(QMainWindow):
         self.ui.table.resizeColumnsToContents()
 
     def closeEvent(self, event):
-        self.ui.csv_manager.save_to_csv()
+        self.ui.csv_manager.save_to_csv(headerlabels=Common.headerlabels)
         event.accept()

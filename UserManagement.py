@@ -1,9 +1,11 @@
+##### - UserManagement.py:
 from hashlib import sha256
 import json
 from pathlib import Path
 import Common
-from PySide6.QtWidgets import QInputDialog
+from PySide6.QtWidgets import QInputDialog, QLineEdit
 import CostCell
+import os
 
 class UserManagement:
     failed_login_attempts = {}
@@ -14,15 +16,19 @@ class UserManagement:
     def hash_password(self, password):
         return sha256(password.encode()).hexdigest()
     
-
     #default directory is at the main.py.
-    def create_user_and_data(self, default_directory, main_window):
-        username, ok = QInputDialog.getText(main_window, "Username", "Enter your username:")
-        if ok:
-            password, ok = QInputDialog.getText(main_window, "Password", "Enter your password:")
-            if ok:
-                Common.create_user_data(username, password, default_directory)
+    def create_user_via_dialogue(self, main_window):
+        username, ok_username = QInputDialog.getText(main_window, "Username", "Enter your username:")
+        if ok_username:
+            password, ok_password = QInputDialog.getText(main_window, "Password", "Enter your password:", QLineEdit.Password)
+            if ok_password:
+                Common.create_user_data(username, password, Common.default_directory)
                 self.CostCell_window_open(username)
+                
+    def create_user_and_data(self, username, password):
+        hashed_password = sha256(password.encode()).hexdigest()
+        self.login_data[username] = hashed_password
+        self.save_login_data
 
     def close(self):
         print("closing UserManagement")
@@ -39,25 +45,17 @@ class UserManagement:
     
     #Loads the login data from JSON file, and retursn empty dictionary if file does not exist or cannot be read.
     def load_login_data(self):
-        try:
             if Path(Common.JSON_FILENAME).exists():
-                with open(Common.JSON_FILENAME, "r")as f:
-                    return json.load(f)
-            else:
-                return {}
-        except Exception as e:
-            print(f"An error occured while loading login data: {e}")
+                with open(Common.JSON_FILENAME, "r") as file:
+                    return json.load(file)
             return {}
-    
+
     #Login data is saved to a JSON file via this function
 # Correct the print statement
-    def save_login_data(self, data):
-        try:
-            with open(Common.JSON_FILENAME, "w") as f:
-                json.dump(data, f)
-        except Exception as e:
-            print(f"An error occurred while saving login data: {e}")
-
+    def save_login_data(self):
+        os.makedirs(os.path.dirname(Common.JSON_FILENAME), exist_ok=True)
+        with open(Common.JSON_FILENAME, "w") as file:
+                json.dump(self.login_data, file)
   
     def create_user(self, username, password):
         self.login_data[username] = self.hash_password(password)    
@@ -66,7 +64,6 @@ class UserManagement:
     def check_login_data(self):
         return UserManagement.load_login_data()
    
-
     def validate_password(self, username,password):
         correct_password_hash = self.login_data[username]
         entered_password_hash = self.hash_password(password)
