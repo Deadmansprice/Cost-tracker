@@ -22,7 +22,7 @@ class UserManagement:
         if ok_username:
             password, ok_password = QInputDialog.getText(main_window, "Password", "Enter your password:", QLineEdit.Password)
             if ok_password:
-                Common.create_user_data(username, password, Common.default_directory)
+                Common.create_user_data(username, password)
                 self.CostCell_window_open(username)
                 
     def create_user_and_data(self, username, password):
@@ -45,16 +45,18 @@ class UserManagement:
     
     #Loads the login data from JSON file, and retursn empty dictionary if file does not exist or cannot be read.
     def load_login_data(self):
-            if Path(Common.JSON_FILENAME).exists():
-                with open(Common.JSON_FILENAME, "r") as file:
-                    return json.load(file)
-            return {}
+        json_file_path = os.path.join(Common.get_current_directory(), "login_data.json")
+        if Path(json_file_path).exists():
+            with open(json_file_path, "r") as file:
+                return json.load(file)
+        return {}
 
     #Login data is saved to a JSON file via this function
 # Correct the print statement
     def save_login_data(self):
-        os.makedirs(os.path.dirname(Common.JSON_FILENAME), exist_ok=True)
-        with open(Common.JSON_FILENAME, "w") as file:
+        json_file_path = os.path.join(Common.get_current_directory(), "login_data.json")
+        os.makedirs(os.path.dirname(json_file_path), exist_ok=True)
+        with open(json_file_path, "w") as file:
                 json.dump(self.login_data, file)
   
     def create_user(self, username, password):
@@ -84,18 +86,3 @@ class UserManagement:
     @classmethod
     def check_failed_login(cls, username):
         return cls.failed_login_attempts.get(username, 0)
-    
-
-    #For Folder saving. See Common.py for more details. 
-    @classmethod
-    def save_folder_path(cls, folder_path):
-        with open(Common.FOLDER_PATH_FILENAME, "w") as f:
-            json.dump({"folder_path": folder_path}, f)
-
-    @classmethod
-    def load_folder_path(cls):
-        if Path(cls.Common.FOLDER_PATH_FILENAME).exists():
-            with open(Common.FOLDER_PATH_FILENAME, "r") as f:
-                data = json.load(f)
-            return data.get("folder_path", "")
-        return ""
