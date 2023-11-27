@@ -5,6 +5,11 @@ This is a cost tracker with the following features (Pre-release version):
  - Password (If you do not want anyone accessing your costs)
  - CSV file/s that will be updated when you add/edit your costs
 
+Current Update:
+ - Moved all of DataManager.py into CSVManagement as it contains functions for CSV and it doesn't make sense to have them separate
+ - Refactored several lines of codes to simplify
+
+Past updates
 Initial pre-release - Version 0.07:
  - Initial file creation. I'm still learning Python programming and should have uploaded to Github earlier for version control but this should suffice.
  - Note, this is still not yet complete hence pre-release. I'll complete it I have all the planned features sorted out.
@@ -22,12 +27,13 @@ Pending features to add prior to release:
  - Add in a button to add the target cost to allow the user for tracking purposes
 
 Current issues:
- - Files not saving where the user desires them to.
+ - Files not saving where the user desires them to. (Got CSV sorted out. Need to do JSON next)
  - 2 different empty folders being created when it should be 1 folder where user desires to save the files to
- - 3 different csvs being created. It should be for 1 CSV. 
- - I've got the CSV to write the days on the row, but the first column does not have the header labels written.
+ - I've got the CSV to write the days on the row, but the first column does not have the header labels written. 
+    - Different set of problem: Headers overwrite the first rows meant for days. Need to fix.
 
 ** Solved Issues
  - 1 CSV saving inside the folder and are not being used 
  - JSON and CSV are saving and are being loaded outside of the main python folder
  - Not loading properly.
+ - 3 different csvs being created. It should be for 1 CSV. 
